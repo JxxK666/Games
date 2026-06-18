@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Neon Breach FPS</title>
+  </head>
+  <body>
+    <div id="game-root" aria-label="Neon Breach 3D FPS game canvas"></div>
+
+    <div id="hud" class="hud is-hidden" aria-live="polite">
+      <section class="objective-chip">
+        <span class="eyebrow">目标</span>
+        <strong id="objectiveText">清除设施守卫</strong>
+        <span id="objectiveDetail">敌人 0 / 0</span>
+      </section>
+
+      <section class="status-strip" aria-label="玩家状态">
+        <div class="health-block">
+          <span>HP</span>
+          <div class="bar-frame"><div id="healthBar" class="bar-fill"></div></div>
+          <strong id="healthText">100</strong>
+        </div>
+        <div class="ammo-block">
+          <span>AMMO</span>
+          <strong id="ammoText">30 / 90</strong>
+        </div>
+        <div class="kill-block">
+          <span>KILLS</span>
+          <strong id="killText">0</strong>
+        </div>
+      </section>
+
+      <div id="crosshair" class="crosshair" aria-hidden="true">
+        <i></i><i></i><i></i><i></i>
+      </div>
+
+      <div id="hitMarker" class="hit-marker" aria-hidden="true"></div>
+      <div id="combatNotice" class="combat-notice"></div>
+      <div id="damageVignette" class="damage-vignette" aria-hidden="true"></div>
+    </div>
+
+    <div id="screenOverlay" class="screen-overlay">
+      <div class="screen-panel">
+        <span id="screenKicker" class="screen-kicker">NEON BREACH</span>
+        <h1 id="screenTitle">霓虹熔炉突入</h1>
+        <p id="screenBody">
+          突入被占领的金属加工站，清除全部守卫。掩体会挡住视线，敌人发现你后会压近并开火。
+        </p>
+        <div class="screen-actions">
+          <button id="primaryAction" type="button">开始任务</button>
+        </div>
+        <div id="transitionProgress" class="transition-progress" aria-hidden="true">
+          <span></span>
+        </div>
+        <dl class="control-grid">
+          <div><dt>移动</dt><dd>WASD</dd></div>
+          <div><dt>视角</dt><dd>鼠标</dd></div>
+          <div><dt>射击</dt><dd>左键</dd></div>
+          <div><dt>换弹</dt><dd>R</dd></div>
+          <div><dt>冲刺</dt><dd>Shift</dd></div>
+          <div><dt>跳跃</dt><dd>Space</dd></div>
+        </dl>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
