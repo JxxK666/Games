@@ -302,36 +302,22 @@ export class GameSimulation {
     player.crouching = input.crouch && player.grounded;
     const forward = { x: -Math.sin(player.yaw), z: -Math.cos(player.yaw) };
     const right = { x: Math.cos(player.yaw), z: -Math.sin(player.yaw) };
-    let moveX = 0;
-    let moveZ = 0;
-
-    if (input.forward) {
-      moveX += forward.x;
-      moveZ += forward.z;
-    }
-    if (input.backward) {
-      moveX -= forward.x;
-      moveZ -= forward.z;
-    }
-    if (input.right) {
-      moveX += right.x;
-      moveZ += right.z;
-    }
-    if (input.left) {
-      moveX -= right.x;
-      moveZ -= right.z;
-    }
+    const inputX = clamp(input.moveX, -1, 1);
+    const inputY = clamp(input.moveY, -1, 1);
+    let moveX = forward.x * inputY + right.x * inputX;
+    let moveZ = forward.z * inputY + right.z * inputX;
 
     const moveLength = length2(moveX, moveZ);
-    player.moveAmount = clamp(moveLength, 0, 1);
+    const moveAmount = clamp(moveLength, 0, 1);
+    player.moveAmount = moveAmount;
     if (moveLength > 0) {
       moveX /= moveLength;
       moveZ /= moveLength;
     }
 
-    const speed = player.crouching ? CROUCH_SPEED : input.sprint && input.forward ? SPRINT_SPEED : WALK_SPEED;
-    player.position.x += moveX * speed * dt;
-    player.position.z += moveZ * speed * dt;
+    const speed = player.crouching ? CROUCH_SPEED : input.sprint && inputY > 0.05 ? SPRINT_SPEED : WALK_SPEED;
+    player.position.x += moveX * speed * moveAmount * dt;
+    player.position.z += moveZ * speed * moveAmount * dt;
     this.resolveCircle(player.position, PLAYER_RADIUS);
 
     if (input.jumpPressed && player.grounded && !player.crouching) {

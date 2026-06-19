@@ -6,7 +6,7 @@ const MAX_MOUSE_FRAME_DELTA = 220;
 const DROP_MOUSE_EVENT_DELTA = 900;
 const TOUCH_LOOK_SCALE = 1.25;
 
-type TouchAction = "forward" | "backward" | "left" | "right" | "fire" | "reload" | "jump" | "sprint";
+type TouchAction = "fire" | "reload" | "jump" | "sprint" | "crouch";
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
@@ -20,17 +20,18 @@ export class InputController {
   private mouseDeltaX = 0;
   private mouseDeltaY = 0;
   private ignoreMouseUntil = 0;
-  private touchForward = false;
-  private touchBackward = false;
-  private touchLeft = false;
-  private touchRight = false;
+  private touchMoveX = 0;
+  private touchMoveY = 0;
   private touchFireHeld = false;
   private touchSprintHeld = false;
+  private touchCrouchHeld = false;
+  private touchJoystickPointerId: number | undefined;
   private touchLookPointerId: number | undefined;
   private touchLookLastX = 0;
   private touchLookLastY = 0;
   private readonly activeTouchPointers = new Map<number, TouchAction>();
   private readonly touchButtons: HTMLElement[] = [];
+  private readonly touchJoystick = document.querySelector<HTMLElement>("#touchJoystick");
 
   constructor(private readonly lockTarget: HTMLElement) {
     window.addEventListener("keydown", this.onKeyDown);
@@ -47,6 +48,7 @@ export class InputController {
     this.lockTarget.addEventListener("pointercancel", this.onTouchLookEnd);
     this.lockTarget.addEventListener("contextmenu", this.onContextMenu);
     this.bindTouchButtons();
+    this.bindTouchJoystick();
   }
 
   destroy() {
@@ -70,6 +72,12 @@ export class InputController {
       button.removeEventListener("lostpointercapture", this.onTouchButtonEnd);
       button.removeEventListener("contextmenu", this.onContextMenu);
     }
+    this.touchJoystick?.removeEventListener("pointerdown", this.onTouchJoystickDown);
+    this.touchJoystick?.removeEventListener("pointermove", this.onTouchJoystickMove);
+    this.touchJoystick?.removeEventListener("pointerup", this.onTouchJoystickEnd);
+    this.touchJoystick?.removeEventListener("pointercancel", this.onTouchJoystickEnd);
+    this.touchJoystick?.removeEventListener("lostpointercapture", this.onTouchJoystickEnd);
+    this.touchJoystick?.removeEventListener("contextmenu", this.onContextMenu);
   }
 
   requestPointerLock() {
@@ -115,13 +123,19 @@ export class InputController {
   }
 
   snapshot(): InputSnapshot {
+    const keyboardX = Number(this.keys.has("KeyD") || this.keys.has("ArrowRight")) - Number(this.keys.has("KeyA") || this.keys.has("ArrowLeft"));
+    const keyboardY = Number(this.keys.has("KeyW") || this.keys.has("ArrowUp")) - Number(this.keys.has("KeyS") || this.keys.has("ArrowDown"));
+    const moveX = clamp(keyboardX + this.touchMoveX, -1, 1);
+    const moveY = clamp(keyboardY + this.touchMoveY, -1, 1);
     const snapshot: InputSnapshot = {
-      forward: this.keys.has("KeyW") || this.keys.has("ArrowUp") || this.touchForward,
-      backward: this.keys.has("KeyS") || this.keys.has("ArrowDown") || this.touchBackward,
-      left: this.keys.has("KeyA") || this.keys.has("ArrowLeft") || this.touchLeft,
-      right: this.keys.has("KeyD") || this.keys.has("ArrowRight") || this.touchRight,
+      moveX,
+      moveY,
+      forward: moveY > 0.05,
+      backward: moveY < -0.05,
+      left: moveX < -0.05,
+      right: moveX > 0.05,
       sprint: this.keys.has("ShiftLeft") || this.keys.has("ShiftRight") || this.touchSprintHeld,
-      crouch: this.crouchHeld || this.keys.has("ControlLeft") || this.keys.has("ControlRight"),
+      crouch: this.crouchHeld || this.keys.has("ControlLeft") || this.keys.has("ControlRight") || this.touchCrouchHeld,
       jumpPressed: this.jumpPressed,
       reloadPressed: this.reloadPressed,
       firePressed: (this.isPointerLocked() && (this.firePressed || this.fireHeld)) || this.touchFireHeld,
@@ -144,18 +158,25 @@ export class InputController {
     }
   }
 
+  private bindTouchJoystick() {
+    if (!this.touchJoystick) return;
+    this.touchJoystick.addEventListener("pointerdown", this.onTouchJoystickDown);
+    this.touchJoystick.addEventListener("pointermove", this.onTouchJoystickMove);
+    this.touchJoystick.addEventListener("pointerup", this.onTouchJoystickEnd);
+    this.touchJoystick.addEventListener("pointercancel", this.onTouchJoystickEnd);
+    this.touchJoystick.addEventListener("lostpointercapture", this.onTouchJoystickEnd);
+    this.touchJoystick.addEventListener("contextmenu", this.onContextMenu);
+  }
+
   private readTouchAction(target: EventTarget | null): TouchAction | undefined {
     if (!(target instanceof HTMLElement)) return undefined;
     const action = target.dataset.touchAction;
     if (
-      action === "forward" ||
-      action === "backward" ||
-      action === "left" ||
-      action === "right" ||
       action === "fire" ||
       action === "reload" ||
       action === "jump" ||
-      action === "sprint"
+      action === "sprint" ||
+      action === "crouch"
     ) {
       return action;
     }
@@ -164,12 +185,9 @@ export class InputController {
 
   private recomputeTouchHeld() {
     const active = new Set(this.activeTouchPointers.values());
-    this.touchForward = active.has("forward");
-    this.touchBackward = active.has("backward");
-    this.touchLeft = active.has("left");
-    this.touchRight = active.has("right");
     this.touchFireHeld = active.has("fire");
     this.touchSprintHeld = active.has("sprint");
+    this.touchCrouchHeld = active.has("crouch");
   }
 
   private onKeyDown = (event: KeyboardEvent) => {
@@ -241,6 +259,66 @@ export class InputController {
     this.recomputeTouchHeld();
   };
 
+  private onTouchJoystickDown = (event: PointerEvent) => {
+    if (!this.touchJoystick || this.touchJoystickPointerId !== undefined) return;
+    event.preventDefault();
+    event.stopPropagation();
+    this.touchJoystickPointerId = event.pointerId;
+    this.touchJoystick.setPointerCapture?.(event.pointerId);
+    this.updateTouchJoystick(event.clientX, event.clientY);
+  };
+
+  private onTouchJoystickMove = (event: PointerEvent) => {
+    if (event.pointerId !== this.touchJoystickPointerId) return;
+    event.preventDefault();
+    event.stopPropagation();
+    this.updateTouchJoystick(event.clientX, event.clientY);
+  };
+
+  private onTouchJoystickEnd = (event: PointerEvent) => {
+    if (event.pointerId !== this.touchJoystickPointerId) return;
+    event.preventDefault();
+    event.stopPropagation();
+    this.resetTouchJoystick();
+  };
+
+  private updateTouchJoystick(clientX: number, clientY: number) {
+    if (!this.touchJoystick) return;
+    const bounds = this.touchJoystick.getBoundingClientRect();
+    const knob = this.touchJoystick.querySelector<HTMLElement>(".touch-joystick-knob");
+    const knobSize = knob?.getBoundingClientRect().width ?? 58;
+    const maxRadius = Math.max(1, (Math.min(bounds.width, bounds.height) - knobSize) / 2);
+    const rawX = clientX - (bounds.left + bounds.width / 2);
+    const rawY = clientY - (bounds.top + bounds.height / 2);
+    const distance = Math.hypot(rawX, rawY);
+    const limit = distance > maxRadius ? maxRadius / distance : 1;
+    const x = rawX * limit;
+    const y = rawY * limit;
+    const normalizedX = x / maxRadius;
+    const normalizedY = -y / maxRadius;
+    const deadZone = 0.08;
+
+    this.touchMoveX = Math.abs(normalizedX) < deadZone ? 0 : normalizedX;
+    this.touchMoveY = Math.abs(normalizedY) < deadZone ? 0 : normalizedY;
+    this.touchJoystick.style.setProperty("--joystick-x", `${x}px`);
+    this.touchJoystick.style.setProperty("--joystick-y", `${y}px`);
+    this.touchJoystick.dataset.axisX = this.touchMoveX.toFixed(3);
+    this.touchJoystick.dataset.axisY = this.touchMoveY.toFixed(3);
+    this.touchJoystick.classList.add("is-active");
+  }
+
+  private resetTouchJoystick() {
+    this.touchJoystickPointerId = undefined;
+    this.touchMoveX = 0;
+    this.touchMoveY = 0;
+    if (!this.touchJoystick) return;
+    this.touchJoystick.style.setProperty("--joystick-x", "0px");
+    this.touchJoystick.style.setProperty("--joystick-y", "0px");
+    this.touchJoystick.dataset.axisX = "0.000";
+    this.touchJoystick.dataset.axisY = "0.000";
+    this.touchJoystick.classList.remove("is-active");
+  }
+
   private onTouchLookDown = (event: PointerEvent) => {
     if (event.pointerType === "mouse" || this.touchLookPointerId !== undefined) return;
     if (event.clientX < window.innerWidth * 0.34) return;
@@ -294,6 +372,7 @@ export class InputController {
     this.fireHeld = false;
     this.activeTouchPointers.clear();
     this.recomputeTouchHeld();
+    this.resetTouchJoystick();
     this.touchLookPointerId = undefined;
     this.jumpPressed = false;
     this.reloadPressed = false;

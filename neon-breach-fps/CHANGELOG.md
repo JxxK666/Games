@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.6 - Mobile Analog Joystick
+
+- Replaced the mobile movement D-pad with a circular analog joystick.
+- Added proportional movement speed, diagonal input, a center dead zone, and automatic recentering on release.
+- Added a hold-to-crouch mobile action button alongside fire, reload, sprint, and jump.
+- Kept desktop WASD and Ctrl controls unchanged.
+- Validated joystick drag, proportional speed, recentering, and hold-to-crouch behavior in a mobile landscape viewport.
+
 ## 0.2.5 - Persistent Crouch Input and Longer Round Finish
 
 - Extended the round-end slow-motion window from 1.35 seconds to 3 seconds before next-level loading begins.

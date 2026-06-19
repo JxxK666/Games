@@ -35,7 +35,7 @@ The production output is generated in `dist/`.
 
 ## Current Version
 
-Current local iteration: `0.2.5`
+Current local iteration: `0.2.6`
 
 See `CHANGELOG.md` for release notes.
 
