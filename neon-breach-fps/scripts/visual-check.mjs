@@ -74,14 +74,18 @@ const run = async () => {
 
   const reports = [];
   const viewports = [
-    { name: "desktop", width: 1440, height: 900 },
-    { name: "mobile", width: 390, height: 844 },
-    { name: "mobile-landscape", width: 844, height: 390 },
+    { name: "desktop", width: 1440, height: 900, isMobile: false, hasTouch: false },
+    { name: "mobile", width: 390, height: 844, isMobile: true, hasTouch: true },
+    { name: "mobile-landscape", width: 844, height: 390, isMobile: true, hasTouch: true },
   ];
 
   try {
     for (const viewport of viewports) {
-      const page = await browser.newPage({ viewport });
+      const page = await browser.newPage({
+        viewport: { width: viewport.width, height: viewport.height },
+        isMobile: viewport.isMobile,
+        hasTouch: viewport.hasTouch,
+      });
       await page.goto(`http://127.0.0.1:${port}/?autostart=1&qa=1`, { waitUntil: "networkidle" });
       await page.waitForTimeout(1400);
       const screenshotPath = join(outputRoot, `neon-breach-${viewport.name}.png`);

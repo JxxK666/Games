@@ -16,6 +16,23 @@ const audio = new AudioDirector();
 
 hud.setMode("menu", simulation.state);
 
+const shouldRequestMouseLook = () =>
+  simulation.state.mode === "playing" && input.canRequestPointerLock() && !input.isPointerLocked();
+
+const showMouseLockHint = (message = "Click the scene to lock mouse look") => {
+  simulation.state.message = message;
+  simulation.state.messageTimer = 2.4;
+};
+
+const requestMouseLook = () => {
+  if (!shouldRequestMouseLook()) return;
+  void input.requestPointerLock().then((locked) => {
+    if (!locked && shouldRequestMouseLook()) {
+      showMouseLockHint("Mouse was not locked. Click the prompt or scene again");
+    }
+  });
+};
+
 const queueNextLevelPreload = () => {
   const prepared = simulation.getPreparedLevel();
   const preload = () => renderer.preloadLevel(prepared.levelIndex, prepared.level);
@@ -26,17 +43,18 @@ const queueNextLevelPreload = () => {
   }
 };
 
-const beginRun = async () => {
+const beginRun = () => {
   simulation.reset();
   simulation.start();
   renderer.reset(simulation.state);
   hud.setMode("playing", simulation.state);
   queueNextLevelPreload();
-  input.requestPointerLock();
-  await audio.unlock();
+  requestMouseLook();
+  void audio.unlock();
 };
 
 hud.onPrimaryAction(beginRun);
+hud.onMouseLockRequest(requestMouseLook);
 
 if (new URLSearchParams(window.location.search).has("autostart")) {
   window.setTimeout(() => {
@@ -49,15 +67,18 @@ if (new URLSearchParams(window.location.search).has("autostart")) {
 }
 
 document.addEventListener("pointerlockchange", () => {
-  if (simulation.state.mode === "playing" && !input.usesTouchControls() && !input.isPointerLocked()) {
-    simulation.state.message = "Click the scene to resume mouse look";
-    simulation.state.messageTimer = 1.5;
-  }
+  if (shouldRequestMouseLook()) showMouseLockHint("Click the prompt or scene to resume mouse look");
 });
 
-renderer.renderer.domElement.addEventListener("click", () => {
-  if (simulation.state.mode === "playing" && !input.usesTouchControls() && !input.isPointerLocked()) {
-    input.requestPointerLock();
+document.addEventListener("pointerlockerror", () => {
+  if (shouldRequestMouseLook()) showMouseLockHint("Browser blocked mouse lock. Click the scene again");
+});
+
+renderer.renderer.domElement.addEventListener("pointerdown", (event) => {
+  if (event.button !== 0 || event.pointerType === "touch") return;
+  if (shouldRequestMouseLook()) {
+    event.preventDefault();
+    requestMouseLook();
   }
 });
 
@@ -88,6 +109,7 @@ const loop = () => {
   }
 
   hud.update(simulation.state);
+  hud.setMouseLockPromptVisible(shouldRequestMouseLook());
   renderer.update(simulation.state, dt);
   window.requestAnimationFrame(loop);
 };

@@ -72,13 +72,27 @@ export class InputController {
   }
 
   requestPointerLock() {
-    if (this.usesTouchControls()) return;
+    if (!this.canRequestPointerLock()) return Promise.resolve(false);
     this.resetMouseLookBuffer();
-    this.lockTarget.requestPointerLock?.();
+    try {
+      const request = (this.lockTarget.requestPointerLock as (() => Promise<void> | void) | undefined)?.();
+      if (request && typeof request.then === "function") {
+        return request.then(() => this.isPointerLocked()).catch(() => false);
+      }
+      return new Promise<boolean>((resolve) => {
+        window.setTimeout(() => resolve(this.isPointerLocked()), 80);
+      });
+    } catch {
+      return Promise.resolve(false);
+    }
   }
 
   isPointerLocked() {
     return document.pointerLockElement === this.lockTarget;
+  }
+
+  canRequestPointerLock() {
+    return !this.usesTouchControls() && typeof this.lockTarget.requestPointerLock === "function";
   }
 
   usesTouchControls() {

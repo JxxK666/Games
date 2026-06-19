@@ -14,6 +14,7 @@ export class Hud {
   private readonly ammoText = document.querySelector<HTMLElement>("#ammoText")!;
   private readonly killText = document.querySelector<HTMLElement>("#killText")!;
   private readonly notice = document.querySelector<HTMLElement>("#combatNotice")!;
+  private readonly mouseLockPrompt = document.querySelector<HTMLButtonElement>("#mouseLockPrompt")!;
   private readonly vignette = document.querySelector<HTMLElement>("#damageVignette")!;
   private readonly hitMarker = document.querySelector<HTMLElement>("#hitMarker")!;
   private readonly progress = document.querySelector<HTMLElement>("#transitionProgress")!;
@@ -21,7 +22,29 @@ export class Hud {
   private readonly controls = document.querySelector<HTMLElement>(".control-grid")!;
 
   onPrimaryAction(callback: () => void) {
-    this.action.addEventListener("click", callback);
+    this.action.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0) return;
+      event.preventDefault();
+      callback();
+    });
+    this.action.addEventListener("keydown", (event) => {
+      if (event.code !== "Enter" && event.code !== "Space") return;
+      event.preventDefault();
+      callback();
+    });
+  }
+
+  onMouseLockRequest(callback: () => void) {
+    this.mouseLockPrompt.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0) return;
+      event.preventDefault();
+      event.stopPropagation();
+      callback();
+    });
+  }
+
+  setMouseLockPromptVisible(visible: boolean) {
+    this.mouseLockPrompt.classList.toggle("is-visible", visible);
   }
 
   setMode(mode: GameMode, state: GameState) {

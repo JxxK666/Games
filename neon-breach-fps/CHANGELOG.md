@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.1 - Mouse Lock Reliability
+
+- Fixed desktop mouse look not locking when the browser misses or rejects the first Pointer Lock request.
+- Added an in-game mouse-lock prompt so players can click the scene again to capture the pointer.
+- Moved mission start to the pointer-down gesture path so browser Pointer Lock permission is requested earlier.
+- Updated visual QA mobile viewports to emulate touch input instead of narrow desktop windows.
+
 ## 0.2.0 - Mobile Landscape Controls
 
 - Added landscape touch controls for mobile play.
