@@ -78,12 +78,15 @@ export class AudioDirector {
   }
 
   private playHitConfirm(killed: boolean) {
-    this.clickBurst(0.018, 4600, killed ? 0.09 : 0.065);
-    this.hitBell(1320, 0.09, killed ? 0.12 : 0.095);
-    this.hitBell(1980, 0.065, killed ? 0.08 : 0.052, 0.012);
     if (killed) {
-      this.hitBell(880, 0.12, 0.075, 0.026);
+      this.clickBurst(0.014, 3200, 0.045);
+      this.hitBell(1180, 0.24, 0.11);
+      this.hitBell(1770, 0.17, 0.05, 0.006);
+      return;
     }
+
+    this.clickBurst(0.026, 210, 0.075);
+    this.tone(145, 0.065, "triangle", 0.09);
   }
 
   private tone(frequency: number, duration: number, type: OscillatorType, volume: number, delay = 0) {
@@ -135,9 +138,11 @@ export class AudioDirector {
     osc.type = "sine";
     shimmer.type = "triangle";
     osc.frequency.setValueAtTime(frequency, start);
+    osc.frequency.exponentialRampToValueAtTime(frequency * 0.985, start + duration);
     shimmer.frequency.setValueAtTime(frequency * 2.01, start);
-    filter.type = "highpass";
-    filter.frequency.value = 520;
+    filter.type = "bandpass";
+    filter.frequency.value = frequency * 1.22;
+    filter.Q.value = 0.72;
     gain.gain.setValueAtTime(0.0001, start);
     gain.gain.exponentialRampToValueAtTime(volume, start + 0.006);
     gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
@@ -165,7 +170,7 @@ export class AudioDirector {
     const gain = this.context.createGain();
     filter.type = "bandpass";
     filter.frequency.value = frequency;
-    filter.Q.value = 4.5;
+    filter.Q.value = 2.8;
     gain.gain.value = volume;
     source.buffer = buffer;
     source.connect(filter);

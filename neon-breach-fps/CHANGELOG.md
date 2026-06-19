@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.3 - Red Kill Confirm
+
+- Kept regular hitmarkers white and changed kill-confirm hitmarkers to a strong red glow.
+- Added a short, low staccato sound for regular hits.
+- Added a clear layered ding sound for kill confirmations.
+- Kept the thin four-stroke hitmarker shape from the previous iteration.
+
 ## 0.2.2 - Hit Confirm Feedback
 
 - Replaced the old boxy hitmarker with a thin four-stroke X marker inspired by modern CS-style visual configs.

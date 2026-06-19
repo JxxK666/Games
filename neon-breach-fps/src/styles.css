@@ -213,10 +213,10 @@ button {
   width: 18px;
   height: 3px;
   border-radius: 999px;
-  background: #f7fbff;
+  background: #f6fbff;
   box-shadow:
-    0 0 8px rgba(255, 255, 255, 0.86),
-    0 0 18px rgba(94, 226, 255, 0.36);
+    0 0 8px rgba(246, 251, 255, 0.82),
+    0 0 18px rgba(160, 224, 255, 0.42);
 }
 
 .hit-marker i:nth-child(1) {
@@ -241,10 +241,14 @@ button {
 }
 
 .hit-marker.is-kill i {
-  background: #fff0a8;
+  background: #ff173d;
   box-shadow:
-    0 0 8px rgba(255, 255, 255, 0.92),
-    0 0 20px rgba(255, 210, 96, 0.72);
+    0 0 9px rgba(255, 68, 94, 0.96),
+    0 0 22px rgba(255, 23, 61, 0.72);
+}
+
+.hit-marker.is-kill {
+  filter: drop-shadow(0 0 10px rgba(255, 23, 61, 0.82));
 }
 
 .mouse-lock-prompt {
