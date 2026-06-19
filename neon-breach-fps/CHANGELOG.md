@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.4 - Round-End Slow Motion and Crouch
+
+- Added a 1.35-second slow-motion finish after the last enemy is defeated before the next-level loading screen appears.
+- Kept enemy death movement, sparks, muzzle effects, and camera animation synchronized with the slow-motion time scale.
+- Added hold-to-crouch controls on left or right Ctrl, including a smooth lower camera, lower firing origin, slower movement, and disabled sprinting and jumping while crouched.
+- Added crouch controls to the start-screen reference and a distinct round-clear HUD treatment.
+
 ## 0.2.3 - Red Kill Confirm
 
 - Kept regular hitmarkers white and changed kill-confirm hitmarkers to a strong red glow.

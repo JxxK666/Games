@@ -110,7 +110,7 @@ const loop = () => {
 
   hud.update(simulation.state);
   hud.setMouseLockPromptVisible(shouldRequestMouseLook());
-  renderer.update(simulation.state, dt);
+  renderer.update(simulation.state, dt * simulation.state.timeScale);
   window.requestAnimationFrame(loop);
 };
 

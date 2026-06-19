@@ -120,6 +120,7 @@ export class InputController {
       left: this.keys.has("KeyA") || this.keys.has("ArrowLeft") || this.touchLeft,
       right: this.keys.has("KeyD") || this.keys.has("ArrowRight") || this.touchRight,
       sprint: this.keys.has("ShiftLeft") || this.keys.has("ShiftRight") || this.touchSprintHeld,
+      crouch: this.keys.has("ControlLeft") || this.keys.has("ControlRight"),
       jumpPressed: this.jumpPressed,
       reloadPressed: this.reloadPressed,
       firePressed: (this.isPointerLocked() && (this.firePressed || this.fireHeld)) || this.touchFireHeld,
@@ -171,7 +172,11 @@ export class InputController {
   }
 
   private onKeyDown = (event: KeyboardEvent) => {
-    if (["KeyW", "KeyA", "KeyS", "KeyD", "Space", "ShiftLeft", "ShiftRight", "KeyR"].includes(event.code)) {
+    if (
+      ["KeyW", "KeyA", "KeyS", "KeyD", "Space", "ShiftLeft", "ShiftRight", "ControlLeft", "ControlRight", "KeyR"].includes(
+        event.code,
+      )
+    ) {
       event.preventDefault();
     }
     if (!event.repeat && event.code === "Space") this.jumpPressed = true;

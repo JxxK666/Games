@@ -10,12 +10,14 @@ import type {
   Vec3,
 } from "./types";
 
-const EYE_HEIGHT = 1.62;
+const STANDING_EYE_HEIGHT = 1.62;
+const CROUCH_EYE_HEIGHT = 1.06;
 const PLAYER_RADIUS = 0.42;
 const ENEMY_EYE_HEIGHT = 1.25;
 const GRAVITY = 18;
 const WALK_SPEED = 4.6;
 const SPRINT_SPEED = 7.1;
+const CROUCH_SPEED = 2.65;
 const JUMP_SPEED = 6.4;
 const PLAYER_DAMAGE_COOLDOWN = 0.22;
 const FIRE_INTERVAL = 0.092;
@@ -25,6 +27,8 @@ const DETECTION_RANGE = 21;
 const ATTACK_RANGE = 17;
 const PLAYER_HIT_DAMAGE = 8;
 const LEVEL_TRANSITION_DURATION = 1.55;
+const ROUND_END_DURATION = 1.35;
+const ROUND_END_TIME_SCALE = 0.32;
 const SPAWN_SHIELD_DURATION = 2.2;
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
@@ -49,6 +53,7 @@ const createPlayer = (spawn: Vec3) => ({
   fireCooldown: 0,
   kills: 0,
   grounded: true,
+  crouching: false,
   hurtTimer: 0,
   spawnShieldTimer: SPAWN_SHIELD_DURATION,
   recoil: 0,
@@ -119,7 +124,8 @@ export class GameSimulation {
   update(dt: number, input: InputSnapshot): GameEvent[] {
     const events: GameEvent[] = [];
     const state = this.state;
-    state.time += dt;
+    const gameDt = dt * state.timeScale;
+    state.time += gameDt;
     state.messageTimer = Math.max(0, state.messageTimer - dt);
 
     if (state.mode === "transition") {
@@ -131,6 +137,14 @@ export class GameSimulation {
         events.push({ type: "levelAdvanced", levelIndex: state.levelIndex });
         events.push({ type: "stateChanged", mode: "playing" });
       }
+      return events;
+    }
+
+    if (state.mode === "roundEnd") {
+      this.updatePlayerTimers(gameDt, events);
+      events.push(...this.updateEnemies(gameDt));
+      state.roundEndTimer = Math.max(0, state.roundEndTimer - dt);
+      if (state.roundEndTimer <= 0) this.beginNextLevelTransition(events);
       return events;
     }
 
@@ -222,7 +236,7 @@ export class GameSimulation {
     const player = this.state.player;
     return {
       x: player.position.x,
-      y: player.position.y + EYE_HEIGHT,
+      y: player.position.y + (player.crouching ? CROUCH_EYE_HEIGHT : STANDING_EYE_HEIGHT),
       z: player.position.z,
     };
   }
@@ -245,6 +259,8 @@ export class GameSimulation {
       time: 0,
       levelIndex,
       transitionProgress: 0,
+      roundEndTimer: 0,
+      timeScale: 1,
       level,
       player: createPlayer(level.playerSpawn),
       enemies,
@@ -278,6 +294,7 @@ export class GameSimulation {
 
   private updatePlayerMovement(dt: number, input: InputSnapshot) {
     const player = this.state.player;
+    player.crouching = input.crouch && player.grounded;
     const forward = { x: -Math.sin(player.yaw), z: -Math.cos(player.yaw) };
     const right = { x: Math.cos(player.yaw), z: -Math.sin(player.yaw) };
     let moveX = 0;
@@ -307,12 +324,12 @@ export class GameSimulation {
       moveZ /= moveLength;
     }
 
-    const speed = input.sprint && input.forward ? SPRINT_SPEED : WALK_SPEED;
+    const speed = player.crouching ? CROUCH_SPEED : input.sprint && input.forward ? SPRINT_SPEED : WALK_SPEED;
     player.position.x += moveX * speed * dt;
     player.position.z += moveZ * speed * dt;
     this.resolveCircle(player.position, PLAYER_RADIUS);
 
-    if (input.jumpPressed && player.grounded) {
+    if (input.jumpPressed && player.grounded && !player.crouching) {
       player.verticalVelocity = JUMP_SPEED;
       player.grounded = false;
     }
@@ -404,8 +421,19 @@ export class GameSimulation {
     }
 
     if (state.enemies.every((enemy) => enemy.state === "dead")) {
-      this.beginNextLevelTransition(events);
+      this.beginRoundEnd(events);
     }
+  }
+
+  private beginRoundEnd(events: GameEvent[]) {
+    const state = this.state;
+    state.mode = "roundEnd";
+    state.roundEndTimer = ROUND_END_DURATION;
+    state.timeScale = ROUND_END_TIME_SCALE;
+    state.message = `ROUND CLEAR - ${state.level.theme.name}`;
+    state.messageTimer = ROUND_END_DURATION;
+    state.player.moveAmount = 0;
+    events.push({ type: "stateChanged", mode: "roundEnd" });
   }
 
   private beginNextLevelTransition(events: GameEvent[]) {
@@ -420,6 +448,8 @@ export class GameSimulation {
     state.enemies = nextEnemies;
     state.totalEnemies = nextEnemies.length;
     state.transitionProgress = 0;
+    state.roundEndTimer = 0;
+    state.timeScale = 1;
     state.mode = "transition";
     state.message = `Loading level ${nextLevelIndex}`;
     state.messageTimer = LEVEL_TRANSITION_DURATION;
@@ -427,6 +457,7 @@ export class GameSimulation {
     player.position = cloneVec(nextLevel.playerSpawn);
     player.verticalVelocity = 0;
     player.grounded = true;
+    player.crouching = false;
     player.yaw = 0;
     player.pitch = 0;
     player.health = Math.min(player.maxHealth, player.health + 30);

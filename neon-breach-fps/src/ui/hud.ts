@@ -48,8 +48,10 @@ export class Hud {
   }
 
   setMode(mode: GameMode, state: GameState) {
-    this.hud.classList.toggle("is-hidden", mode !== "playing");
-    this.overlay.classList.toggle("is-hidden", mode === "playing");
+    const keepsPlayfieldVisible = mode === "playing" || mode === "roundEnd";
+    this.hud.classList.toggle("is-hidden", !keepsPlayfieldVisible);
+    this.hud.classList.toggle("is-round-end", mode === "roundEnd");
+    this.overlay.classList.toggle("is-hidden", keepsPlayfieldVisible);
     this.overlay.classList.remove("is-dead", "is-victory");
     this.progress.classList.toggle("is-visible", mode === "transition");
     this.action.classList.toggle("is-hidden", mode === "transition");
@@ -89,6 +91,8 @@ export class Hud {
 
   update(state: GameState) {
     const player = state.player;
+    this.hud.dataset.mode = state.mode;
+    this.hud.dataset.stance = player.crouching ? "crouching" : "standing";
     const defeated = state.enemies.filter((enemy) => enemy.state === "dead").length;
     const healthRatio = Math.max(0, player.health / player.maxHealth);
     this.objectiveText.textContent = `L${state.levelIndex} ${state.level.theme.objectiveLabel}`;

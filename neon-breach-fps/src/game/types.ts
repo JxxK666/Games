@@ -1,4 +1,4 @@
-export type GameMode = "menu" | "playing" | "transition" | "dead" | "victory";
+export type GameMode = "menu" | "playing" | "roundEnd" | "transition" | "dead" | "victory";
 export type EnemyState = "patrol" | "chase" | "attack" | "dead";
 export type ColliderKind =
   | "wall"
@@ -65,6 +65,7 @@ export interface PlayerState {
   fireCooldown: number;
   kills: number;
   grounded: boolean;
+  crouching: boolean;
   hurtTimer: number;
   spawnShieldTimer: number;
   recoil: number;
@@ -105,6 +106,8 @@ export interface GameState {
   time: number;
   levelIndex: number;
   transitionProgress: number;
+  roundEndTimer: number;
+  timeScale: number;
   level: LevelData;
   player: PlayerState;
   enemies: EnemyStateData[];
@@ -119,6 +122,7 @@ export interface InputSnapshot {
   left: boolean;
   right: boolean;
   sprint: boolean;
+  crouch: boolean;
   jumpPressed: boolean;
   reloadPressed: boolean;
   firePressed: boolean;

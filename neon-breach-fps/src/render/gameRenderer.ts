@@ -13,7 +13,7 @@ type TimedObject = {
   object: THREE.Object3D;
   life: number;
   maxLife: number;
-  update?: (ratio: number) => void;
+  update?: (ratio: number, dt: number) => void;
 };
 
 type PreloadedLevel = {
@@ -70,6 +70,7 @@ export class GameRenderer {
     blending: THREE.AdditiveBlending,
   });
   private bobPhase = 0;
+  private cameraEyeHeight = 1.62;
   private muzzleTimer = 0;
   private readonly baseWeaponPosition = new THREE.Vector3(0.38, -0.34, -0.58);
   private preloadedLevel?: PreloadedLevel;
@@ -128,6 +129,7 @@ export class GameRenderer {
     this.createEnemies(state.enemies);
     this.clearTimedObjects();
     this.muzzleTimer = 0;
+    this.cameraEyeHeight = state.player.crouching ? 1.06 : 1.62;
   }
 
   preloadLevel(levelIndex: number, level: LevelData) {
@@ -727,14 +729,20 @@ export class GameRenderer {
   private syncCamera(state: GameState, dt: number) {
     const player = state.player;
     const moving = player.grounded ? player.moveAmount : 0;
+    const targetEyeHeight = player.crouching ? 1.06 : 1.62;
+    this.cameraEyeHeight = THREE.MathUtils.damp(this.cameraEyeHeight, targetEyeHeight, 14, dt);
     this.bobPhase += dt * (moving > 0 ? 10.5 + moving * 3.5 : 3);
-    const bob = Math.sin(this.bobPhase) * 0.035 * moving;
+    const bob = Math.sin(this.bobPhase) * 0.035 * moving * (player.crouching ? 0.55 : 1);
     const sway = Math.cos(this.bobPhase * 0.5) * 0.025 * moving;
     const shake = player.shake;
     const jitterX = (Math.random() - 0.5) * 0.045 * shake;
     const jitterY = (Math.random() - 0.5) * 0.035 * shake;
 
-    this.camera.position.set(player.position.x + jitterX, player.position.y + 1.62 + bob + jitterY, player.position.z);
+    this.camera.position.set(
+      player.position.x + jitterX,
+      player.position.y + this.cameraEyeHeight + bob + jitterY,
+      player.position.z,
+    );
     this.camera.rotation.y = player.yaw + sway * 0.025;
     this.camera.rotation.x = player.pitch + player.recoil * 0.026;
     this.camera.rotation.z = -sway * 0.035;
@@ -776,7 +784,7 @@ export class GameRenderer {
       const item = this.timedObjects[i];
       item.life -= dt;
       const ratio = Math.max(0, item.life / item.maxLife);
-      item.update?.(ratio);
+      item.update?.(ratio, dt);
       if (item.life <= 0) {
         this.scene.remove(item.object);
         disposeObject(item.object);
@@ -842,9 +850,9 @@ export class GameRenderer {
         object: mesh,
         life: 0.34 + Math.random() * 0.18,
         maxLife: 0.5,
-        update: (ratio) => {
-          velocity.y -= 0.13;
-          mesh.position.addScaledVector(velocity, 0.016);
+        update: (ratio, dt) => {
+          velocity.y -= 8.1 * dt;
+          mesh.position.addScaledVector(velocity, dt);
           mesh.scale.setScalar(0.5 + ratio);
           material.opacity = ratio;
         },
