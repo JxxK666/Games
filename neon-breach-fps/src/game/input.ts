@@ -82,7 +82,10 @@ export class InputController {
   }
 
   usesTouchControls() {
-    return navigator.maxTouchPoints > 0 || window.matchMedia("(pointer: coarse)").matches;
+    const coarsePrimaryPointer = window.matchMedia("(pointer: coarse)").matches;
+    const finePointerAvailable = window.matchMedia("(any-pointer: fine)").matches;
+    const hoverAvailable = window.matchMedia("(any-hover: hover)").matches;
+    return coarsePrimaryPointer && !finePointerAvailable && !hoverAvailable;
   }
 
   consumeMouseDelta() {

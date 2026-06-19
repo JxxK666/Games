@@ -32,8 +32,8 @@ const beginRun = async () => {
   renderer.reset(simulation.state);
   hud.setMode("playing", simulation.state);
   queueNextLevelPreload();
-  await audio.unlock();
   input.requestPointerLock();
+  await audio.unlock();
 };
 
 hud.onPrimaryAction(beginRun);
