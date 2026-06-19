@@ -27,7 +27,7 @@ export class AudioDirector {
       if (event.type === "reloadComplete") this.playReloadComplete();
       if (event.type === "enemyKilled") this.playEnemyDown();
       if (event.type === "playerHit") this.playPlayerHit();
-      if (event.type === "enemyHit" && !event.killed) this.playImpact();
+      if (event.type === "enemyHit") this.playHitConfirm(event.killed);
     }
   }
 
@@ -68,8 +68,8 @@ export class AudioDirector {
   }
 
   private playEnemyDown() {
-    this.noiseBurst(0.18, 300, 0.16);
-    this.tone(74, 0.28, "sawtooth", 0.13);
+    this.noiseBurst(0.12, 300, 0.08);
+    this.tone(74, 0.22, "sawtooth", 0.08);
   }
 
   private playPlayerHit() {
@@ -77,8 +77,13 @@ export class AudioDirector {
     this.tone(130, 0.16, "sawtooth", 0.12);
   }
 
-  private playImpact() {
-    this.noiseBurst(0.045, 1400, 0.06);
+  private playHitConfirm(killed: boolean) {
+    this.clickBurst(0.018, 4600, killed ? 0.09 : 0.065);
+    this.hitBell(1320, 0.09, killed ? 0.12 : 0.095);
+    this.hitBell(1980, 0.065, killed ? 0.08 : 0.052, 0.012);
+    if (killed) {
+      this.hitBell(880, 0.12, 0.075, 0.026);
+    }
   }
 
   private tone(frequency: number, duration: number, type: OscillatorType, volume: number, delay = 0) {
@@ -112,6 +117,55 @@ export class AudioDirector {
     const gain = this.context.createGain();
     filter.type = "lowpass";
     filter.frequency.value = cutoff;
+    gain.gain.value = volume;
+    source.buffer = buffer;
+    source.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.master);
+    source.start();
+  }
+
+  private hitBell(frequency: number, duration: number, volume: number, delay = 0) {
+    if (!this.context || !this.master) return;
+    const start = this.context.currentTime + delay;
+    const osc = this.context.createOscillator();
+    const shimmer = this.context.createOscillator();
+    const gain = this.context.createGain();
+    const filter = this.context.createBiquadFilter();
+    osc.type = "sine";
+    shimmer.type = "triangle";
+    osc.frequency.setValueAtTime(frequency, start);
+    shimmer.frequency.setValueAtTime(frequency * 2.01, start);
+    filter.type = "highpass";
+    filter.frequency.value = 520;
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.exponentialRampToValueAtTime(volume, start + 0.006);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+    osc.connect(filter);
+    shimmer.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.master);
+    osc.start(start);
+    shimmer.start(start);
+    osc.stop(start + duration + 0.03);
+    shimmer.stop(start + duration + 0.03);
+  }
+
+  private clickBurst(duration: number, frequency: number, volume: number) {
+    if (!this.context || !this.master) return;
+    const sampleRate = this.context.sampleRate;
+    const buffer = this.context.createBuffer(1, Math.ceil(sampleRate * duration), sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i += 1) {
+      const falloff = 1 - i / data.length;
+      data[i] = (Math.random() * 2 - 1) * falloff * falloff;
+    }
+    const source = this.context.createBufferSource();
+    const filter = this.context.createBiquadFilter();
+    const gain = this.context.createGain();
+    filter.type = "bandpass";
+    filter.frequency.value = frequency;
+    filter.Q.value = 4.5;
     gain.gain.value = volume;
     source.buffer = buffer;
     source.connect(filter);

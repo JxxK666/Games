@@ -109,6 +109,6 @@ export class Hud {
       this.hitMarker.classList.add("is-visible");
       this.hitMarker.classList.toggle("is-kill", killed);
     });
-    window.setTimeout(() => this.hitMarker.classList.remove("is-visible", "is-kill"), 120);
+    window.setTimeout(() => this.hitMarker.classList.remove("is-visible", "is-kill"), killed ? 170 : 135);
   }
 }

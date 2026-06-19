@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.2 - Hit Confirm Feedback
+
+- Replaced the old boxy hitmarker with a thin four-stroke X marker inspired by modern CS-style visual configs.
+- Added a crisp synthetic bell/bubble hitsound for every enemy hit.
+- Added a brighter layered kill-confirm sound and slightly longer kill hitmarker flash.
+- Kept all hit feedback procedural, with no copied external audio assets.
+
 ## 0.2.1 - Mouse Lock Reliability
 
 - Fixed desktop mouse look not locking when the browser misses or rejects the first Pointer Lock request.

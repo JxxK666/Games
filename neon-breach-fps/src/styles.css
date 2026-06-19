@@ -197,22 +197,54 @@ button {
   position: fixed;
   top: 50%;
   left: 50%;
-  width: 22px;
-  height: 22px;
+  width: 58px;
+  height: 58px;
   opacity: 0;
-  transform: translate(-50%, -50%) rotate(45deg) scale(0.78);
-  border: 2px solid var(--pink);
-  transition: opacity 80ms ease-out, transform 80ms ease-out;
+  transform: translate(-50%, -50%) scale(0.72);
+  transition: opacity 54ms ease-out, transform 86ms cubic-bezier(0.2, 1.4, 0.2, 1);
+  filter: drop-shadow(0 0 8px rgba(245, 251, 255, 0.62));
+}
+
+.hit-marker i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block;
+  width: 18px;
+  height: 3px;
+  border-radius: 999px;
+  background: #f7fbff;
+  box-shadow:
+    0 0 8px rgba(255, 255, 255, 0.86),
+    0 0 18px rgba(94, 226, 255, 0.36);
+}
+
+.hit-marker i:nth-child(1) {
+  transform: translate(-30px, -21px) rotate(45deg);
+}
+
+.hit-marker i:nth-child(2) {
+  transform: translate(12px, -21px) rotate(-45deg);
+}
+
+.hit-marker i:nth-child(3) {
+  transform: translate(-30px, 18px) rotate(-45deg);
+}
+
+.hit-marker i:nth-child(4) {
+  transform: translate(12px, 18px) rotate(45deg);
 }
 
 .hit-marker.is-visible {
   opacity: 1;
-  transform: translate(-50%, -50%) rotate(45deg) scale(1);
+  transform: translate(-50%, -50%) scale(1);
 }
 
-.hit-marker.is-kill {
-  border-color: var(--amber);
-  box-shadow: 0 0 18px rgba(255, 210, 96, 0.8);
+.hit-marker.is-kill i {
+  background: #fff0a8;
+  box-shadow:
+    0 0 8px rgba(255, 255, 255, 0.92),
+    0 0 20px rgba(255, 210, 96, 0.72);
 }
 
 .mouse-lock-prompt {
