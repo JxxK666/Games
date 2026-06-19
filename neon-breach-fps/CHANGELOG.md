@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.5 - Persistent Crouch Input and Longer Round Finish
+
+- Extended the round-end slow-motion window from 1.35 seconds to 3 seconds before next-level loading begins.
+- Added a visible 3-2-1 next-level countdown during the slow-motion finish.
+- Made Ctrl crouching reliable after level transitions by tracking the browser modifier state in addition to left/right Control key codes.
+- Explicitly clears crouch state on focus loss to prevent a stuck stance after browser or pointer-lock changes.
+
 ## 0.2.4 - Round-End Slow Motion and Crouch
 
 - Added a 1.35-second slow-motion finish after the last enemy is defeated before the next-level loading screen appears.

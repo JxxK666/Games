@@ -16,6 +16,7 @@ export class InputController {
   private fireHeld = false;
   private reloadPressed = false;
   private jumpPressed = false;
+  private crouchHeld = false;
   private mouseDeltaX = 0;
   private mouseDeltaY = 0;
   private ignoreMouseUntil = 0;
@@ -120,7 +121,7 @@ export class InputController {
       left: this.keys.has("KeyA") || this.keys.has("ArrowLeft") || this.touchLeft,
       right: this.keys.has("KeyD") || this.keys.has("ArrowRight") || this.touchRight,
       sprint: this.keys.has("ShiftLeft") || this.keys.has("ShiftRight") || this.touchSprintHeld,
-      crouch: this.keys.has("ControlLeft") || this.keys.has("ControlRight"),
+      crouch: this.crouchHeld || this.keys.has("ControlLeft") || this.keys.has("ControlRight"),
       jumpPressed: this.jumpPressed,
       reloadPressed: this.reloadPressed,
       firePressed: (this.isPointerLocked() && (this.firePressed || this.fireHeld)) || this.touchFireHeld,
@@ -181,11 +182,15 @@ export class InputController {
     }
     if (!event.repeat && event.code === "Space") this.jumpPressed = true;
     if (!event.repeat && event.code === "KeyR") this.reloadPressed = true;
+    if (event.ctrlKey || event.code === "ControlLeft" || event.code === "ControlRight") this.crouchHeld = true;
     this.keys.add(event.code);
   };
 
   private onKeyUp = (event: KeyboardEvent) => {
     this.keys.delete(event.code);
+    if (event.code === "ControlLeft" || event.code === "ControlRight" || !event.ctrlKey) {
+      this.crouchHeld = event.ctrlKey;
+    }
   };
 
   private onMouseDown = (event: MouseEvent) => {
@@ -292,6 +297,7 @@ export class InputController {
     this.touchLookPointerId = undefined;
     this.jumpPressed = false;
     this.reloadPressed = false;
+    this.crouchHeld = false;
     this.resetMouseLookBuffer();
   }
 

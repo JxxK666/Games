@@ -27,7 +27,7 @@ const DETECTION_RANGE = 21;
 const ATTACK_RANGE = 17;
 const PLAYER_HIT_DAMAGE = 8;
 const LEVEL_TRANSITION_DURATION = 1.55;
-const ROUND_END_DURATION = 1.35;
+const ROUND_END_DURATION = 3;
 const ROUND_END_TIME_SCALE = 0.32;
 const SPAWN_SHIELD_DURATION = 2.2;
 
@@ -144,7 +144,12 @@ export class GameSimulation {
       this.updatePlayerTimers(gameDt, events);
       events.push(...this.updateEnemies(gameDt));
       state.roundEndTimer = Math.max(0, state.roundEndTimer - dt);
-      if (state.roundEndTimer <= 0) this.beginNextLevelTransition(events);
+      if (state.roundEndTimer <= 0) {
+        this.beginNextLevelTransition(events);
+      } else {
+        state.message = `ROUND CLEAR - NEXT LEVEL IN ${Math.ceil(state.roundEndTimer)}`;
+        state.messageTimer = state.roundEndTimer;
+      }
       return events;
     }
 
@@ -430,7 +435,7 @@ export class GameSimulation {
     state.mode = "roundEnd";
     state.roundEndTimer = ROUND_END_DURATION;
     state.timeScale = ROUND_END_TIME_SCALE;
-    state.message = `ROUND CLEAR - ${state.level.theme.name}`;
+    state.message = `ROUND CLEAR - NEXT LEVEL IN ${Math.ceil(ROUND_END_DURATION)}`;
     state.messageTimer = ROUND_END_DURATION;
     state.player.moveAmount = 0;
     events.push({ type: "stateChanged", mode: "roundEnd" });
