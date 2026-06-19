@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
     <title>Neon Breach FPS</title>
   </head>
   <body>
@@ -10,12 +10,12 @@
 
     <div id="hud" class="hud is-hidden" aria-live="polite">
       <section class="objective-chip">
-        <span class="eyebrow">目标</span>
-        <strong id="objectiveText">清除设施守卫</strong>
-        <span id="objectiveDetail">敌人 0 / 0</span>
+        <span class="eyebrow">OBJECTIVE</span>
+        <strong id="objectiveText">Clear the area</strong>
+        <span id="objectiveDetail">Enemies 0 / 0</span>
       </section>
 
-      <section class="status-strip" aria-label="玩家状态">
+      <section class="status-strip" aria-label="Player status">
         <div class="health-block">
           <span>HP</span>
           <div class="bar-frame"><div id="healthBar" class="bar-fill"></div></div>
@@ -38,28 +38,44 @@
       <div id="hitMarker" class="hit-marker" aria-hidden="true"></div>
       <div id="combatNotice" class="combat-notice"></div>
       <div id="damageVignette" class="damage-vignette" aria-hidden="true"></div>
+
+      <div id="touchControls" class="touch-controls" aria-label="Mobile touch controls">
+        <div class="touch-move" aria-label="Move">
+          <button class="touch-btn touch-forward" type="button" data-touch-action="forward" aria-label="Move forward">W</button>
+          <button class="touch-btn touch-left" type="button" data-touch-action="left" aria-label="Move left">A</button>
+          <button class="touch-btn touch-backward" type="button" data-touch-action="backward" aria-label="Move backward">S</button>
+          <button class="touch-btn touch-right" type="button" data-touch-action="right" aria-label="Move right">D</button>
+        </div>
+        <div class="touch-actions" aria-label="Actions">
+          <button class="touch-btn touch-reload" type="button" data-touch-action="reload" aria-label="Reload">R</button>
+          <button class="touch-btn touch-sprint" type="button" data-touch-action="sprint" aria-label="Sprint">RUN</button>
+          <button class="touch-btn touch-jump" type="button" data-touch-action="jump" aria-label="Jump">JUMP</button>
+          <button class="touch-btn touch-fire" type="button" data-touch-action="fire" aria-label="Fire">FIRE</button>
+        </div>
+      </div>
+      <div class="rotate-device-hint" aria-hidden="true">Rotate to landscape</div>
     </div>
 
     <div id="screenOverlay" class="screen-overlay">
       <div class="screen-panel">
         <span id="screenKicker" class="screen-kicker">NEON BREACH</span>
-        <h1 id="screenTitle">霓虹熔炉突入</h1>
+        <h1 id="screenTitle">Neon Breach</h1>
         <p id="screenBody">
-          突入被占领的金属加工站，清除全部守卫。掩体会挡住视线，敌人发现你后会压近并开火。
+          Push through indoor public spaces, use cover, and clear every guard. On mobile, rotate to landscape and use the touch controls.
         </p>
         <div class="screen-actions">
-          <button id="primaryAction" type="button">开始任务</button>
+          <button id="primaryAction" type="button">Start Mission</button>
         </div>
         <div id="transitionProgress" class="transition-progress" aria-hidden="true">
           <span></span>
         </div>
         <dl class="control-grid">
-          <div><dt>移动</dt><dd>WASD</dd></div>
-          <div><dt>视角</dt><dd>鼠标</dd></div>
-          <div><dt>射击</dt><dd>左键</dd></div>
-          <div><dt>换弹</dt><dd>R</dd></div>
-          <div><dt>冲刺</dt><dd>Shift</dd></div>
-          <div><dt>跳跃</dt><dd>Space</dd></div>
+          <div><dt>Move</dt><dd>WASD</dd></div>
+          <div><dt>Look</dt><dd>Mouse / Touch</dd></div>
+          <div><dt>Fire</dt><dd>Left Click / FIRE</dd></div>
+          <div><dt>Reload</dt><dd>R</dd></div>
+          <div><dt>Sprint</dt><dd>Shift / RUN</dd></div>
+          <div><dt>Jump</dt><dd>Space / JUMP</dd></div>
         </dl>
       </div>
     </div>

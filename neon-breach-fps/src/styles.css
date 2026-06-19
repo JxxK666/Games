@@ -36,6 +36,8 @@ button {
   width: 100vw;
   height: 100vh;
   display: block;
+  touch-action: none;
+  user-select: none;
 }
 
 .hud {
@@ -247,6 +249,132 @@ button {
   transition: opacity 90ms ease-out;
 }
 
+.touch-controls {
+  display: none;
+}
+
+.touch-btn {
+  width: 58px;
+  height: 58px;
+  border: 1px solid rgba(142, 223, 255, 0.34);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.24), rgba(9, 18, 27, 0.74));
+  color: var(--text);
+  font-weight: 900;
+  letter-spacing: 0;
+  box-shadow:
+    0 10px 26px rgba(0, 0, 0, 0.28),
+    inset 0 0 18px rgba(94, 226, 255, 0.1);
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+}
+
+.touch-btn:active {
+  transform: scale(0.94);
+  border-color: rgba(126, 255, 197, 0.72);
+  box-shadow:
+    0 0 18px rgba(94, 226, 255, 0.42),
+    inset 0 0 22px rgba(126, 255, 197, 0.18);
+}
+
+.touch-move,
+.touch-actions {
+  position: fixed;
+  z-index: 7;
+  pointer-events: auto;
+}
+
+.touch-move {
+  left: max(18px, env(safe-area-inset-left));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: repeat(3, 58px);
+  grid-template-rows: repeat(3, 58px);
+  gap: 8px;
+}
+
+.touch-forward {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.touch-left {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.touch-backward {
+  grid-column: 2;
+  grid-row: 3;
+}
+
+.touch-right {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.touch-actions {
+  right: max(20px, env(safe-area-inset-right));
+  bottom: max(18px, env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: 64px 72px 64px;
+  grid-template-rows: 62px 74px;
+  gap: 9px;
+  align-items: center;
+  justify-items: center;
+}
+
+.touch-reload {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.touch-sprint {
+  grid-column: 2;
+  grid-row: 1;
+  width: 66px;
+  height: 52px;
+  border-radius: 16px;
+  font-size: 0.78rem;
+}
+
+.touch-jump {
+  grid-column: 3;
+  grid-row: 1;
+  width: 66px;
+  height: 52px;
+  border-radius: 16px;
+  font-size: 0.72rem;
+}
+
+.touch-fire {
+  grid-column: 2 / 4;
+  grid-row: 2;
+  width: 112px;
+  height: 72px;
+  border-radius: 999px;
+  border-color: rgba(255, 210, 96, 0.5);
+  background: radial-gradient(circle at 35% 28%, rgba(255, 235, 173, 0.34), rgba(112, 21, 39, 0.78));
+  color: #fff4d4;
+}
+
+.rotate-device-hint {
+  display: none;
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  z-index: 8;
+  transform: translateX(-50%);
+  padding: 8px 12px;
+  border: 1px solid rgba(142, 223, 255, 0.34);
+  border-radius: 999px;
+  background: rgba(5, 8, 12, 0.76);
+  color: var(--text);
+  font-weight: 800;
+  pointer-events: none;
+}
+
 .screen-overlay {
   position: fixed;
   inset: 0;
@@ -380,10 +508,61 @@ button {
   z-index: 20;
   display: grid;
   place-items: center;
-  content: "WebGL 上下文已暂停，刷新页面可恢复。";
+  content: "WebGL context paused. Refresh to recover.";
   background: rgba(0, 0, 0, 0.86);
   color: white;
   font-weight: 800;
+}
+
+@media (orientation: landscape) and (pointer: coarse), (max-height: 560px) and (max-width: 980px) {
+  .hud:not(.is-hidden) .touch-controls {
+    display: block;
+  }
+
+  .objective-chip {
+    top: max(8px, env(safe-area-inset-top));
+    left: max(10px, env(safe-area-inset-left));
+    max-width: min(280px, 38vw);
+    padding: 8px 10px;
+  }
+
+  .objective-chip strong {
+    font-size: 0.95rem;
+  }
+
+  #objectiveDetail {
+    font-size: 0.72rem;
+  }
+
+  .status-strip {
+    top: max(8px, env(safe-area-inset-top));
+    right: max(10px, env(safe-area-inset-right));
+    width: min(360px, 42vw);
+    padding: 8px 10px;
+    gap: 10px;
+  }
+
+  .ammo-block,
+  .kill-block {
+    min-width: 54px;
+  }
+
+  .combat-notice {
+    bottom: max(12px, env(safe-area-inset-bottom));
+    max-width: min(320px, 38vw);
+    padding: 7px 11px;
+    font-size: 0.82rem;
+  }
+}
+
+@media (orientation: portrait) and (pointer: coarse) {
+  .hud:not(.is-hidden) .rotate-device-hint {
+    display: block;
+  }
+
+  .hud:not(.is-hidden) .touch-controls {
+    display: none;
+  }
 }
 
 @media (max-width: 720px) {
@@ -416,5 +595,23 @@ button {
 
   .screen-panel {
     padding: 22px;
+  }
+}
+
+@media (max-width: 720px) and (orientation: landscape) {
+  .status-strip {
+    top: max(8px, env(safe-area-inset-top));
+    right: max(10px, env(safe-area-inset-right));
+    bottom: auto;
+    grid-template-columns: minmax(110px, 1fr) auto auto;
+    width: min(360px, 42vw);
+  }
+
+  .kill-block {
+    display: block;
+  }
+
+  .combat-notice {
+    bottom: max(12px, env(safe-area-inset-bottom));
   }
 }

@@ -4,6 +4,9 @@ const POINTER_LOCK_WARMUP_MS = 120;
 const MAX_MOUSE_EVENT_DELTA = 140;
 const MAX_MOUSE_FRAME_DELTA = 220;
 const DROP_MOUSE_EVENT_DELTA = 900;
+const TOUCH_LOOK_SCALE = 1.25;
+
+type TouchAction = "forward" | "backward" | "left" | "right" | "fire" | "reload" | "jump" | "sprint";
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
@@ -16,6 +19,17 @@ export class InputController {
   private mouseDeltaX = 0;
   private mouseDeltaY = 0;
   private ignoreMouseUntil = 0;
+  private touchForward = false;
+  private touchBackward = false;
+  private touchLeft = false;
+  private touchRight = false;
+  private touchFireHeld = false;
+  private touchSprintHeld = false;
+  private touchLookPointerId: number | undefined;
+  private touchLookLastX = 0;
+  private touchLookLastY = 0;
+  private readonly activeTouchPointers = new Map<number, TouchAction>();
+  private readonly touchButtons: HTMLElement[] = [];
 
   constructor(private readonly lockTarget: HTMLElement) {
     window.addEventListener("keydown", this.onKeyDown);
@@ -26,6 +40,12 @@ export class InputController {
     window.addEventListener("blur", this.onWindowBlur);
     document.addEventListener("pointerlockchange", this.onPointerLockChange);
     document.addEventListener("visibilitychange", this.onVisibilityChange);
+    this.lockTarget.addEventListener("pointerdown", this.onTouchLookDown);
+    this.lockTarget.addEventListener("pointermove", this.onTouchLookMove);
+    this.lockTarget.addEventListener("pointerup", this.onTouchLookEnd);
+    this.lockTarget.addEventListener("pointercancel", this.onTouchLookEnd);
+    this.lockTarget.addEventListener("contextmenu", this.onContextMenu);
+    this.bindTouchButtons();
   }
 
   destroy() {
@@ -37,19 +57,36 @@ export class InputController {
     window.removeEventListener("blur", this.onWindowBlur);
     document.removeEventListener("pointerlockchange", this.onPointerLockChange);
     document.removeEventListener("visibilitychange", this.onVisibilityChange);
+    this.lockTarget.removeEventListener("pointerdown", this.onTouchLookDown);
+    this.lockTarget.removeEventListener("pointermove", this.onTouchLookMove);
+    this.lockTarget.removeEventListener("pointerup", this.onTouchLookEnd);
+    this.lockTarget.removeEventListener("pointercancel", this.onTouchLookEnd);
+    this.lockTarget.removeEventListener("contextmenu", this.onContextMenu);
+    for (const button of this.touchButtons) {
+      button.removeEventListener("pointerdown", this.onTouchButtonDown);
+      button.removeEventListener("pointerup", this.onTouchButtonEnd);
+      button.removeEventListener("pointercancel", this.onTouchButtonEnd);
+      button.removeEventListener("lostpointercapture", this.onTouchButtonEnd);
+      button.removeEventListener("contextmenu", this.onContextMenu);
+    }
   }
 
   requestPointerLock() {
+    if (this.usesTouchControls()) return;
     this.resetMouseLookBuffer();
-    this.lockTarget.requestPointerLock();
+    this.lockTarget.requestPointerLock?.();
   }
 
   isPointerLocked() {
     return document.pointerLockElement === this.lockTarget;
   }
 
+  usesTouchControls() {
+    return navigator.maxTouchPoints > 0 || window.matchMedia("(pointer: coarse)").matches;
+  }
+
   consumeMouseDelta() {
-    if (!this.isPointerLocked()) this.resetMouseLookBuffer();
+    if (!this.isPointerLocked() && !this.usesTouchControls()) this.resetMouseLookBuffer();
     const delta = {
       x: clamp(this.mouseDeltaX, -MAX_MOUSE_FRAME_DELTA, MAX_MOUSE_FRAME_DELTA),
       y: clamp(this.mouseDeltaY, -MAX_MOUSE_FRAME_DELTA, MAX_MOUSE_FRAME_DELTA),
@@ -61,19 +98,59 @@ export class InputController {
 
   snapshot(): InputSnapshot {
     const snapshot: InputSnapshot = {
-      forward: this.keys.has("KeyW") || this.keys.has("ArrowUp"),
-      backward: this.keys.has("KeyS") || this.keys.has("ArrowDown"),
-      left: this.keys.has("KeyA") || this.keys.has("ArrowLeft"),
-      right: this.keys.has("KeyD") || this.keys.has("ArrowRight"),
-      sprint: this.keys.has("ShiftLeft") || this.keys.has("ShiftRight"),
+      forward: this.keys.has("KeyW") || this.keys.has("ArrowUp") || this.touchForward,
+      backward: this.keys.has("KeyS") || this.keys.has("ArrowDown") || this.touchBackward,
+      left: this.keys.has("KeyA") || this.keys.has("ArrowLeft") || this.touchLeft,
+      right: this.keys.has("KeyD") || this.keys.has("ArrowRight") || this.touchRight,
+      sprint: this.keys.has("ShiftLeft") || this.keys.has("ShiftRight") || this.touchSprintHeld,
       jumpPressed: this.jumpPressed,
       reloadPressed: this.reloadPressed,
-      firePressed: this.isPointerLocked() && (this.firePressed || this.fireHeld),
+      firePressed: (this.isPointerLocked() && (this.firePressed || this.fireHeld)) || this.touchFireHeld,
     };
     this.jumpPressed = false;
     this.reloadPressed = false;
     this.firePressed = false;
     return snapshot;
+  }
+
+  private bindTouchButtons() {
+    const buttons = [...document.querySelectorAll<HTMLElement>("[data-touch-action]")];
+    for (const button of buttons) {
+      this.touchButtons.push(button);
+      button.addEventListener("pointerdown", this.onTouchButtonDown);
+      button.addEventListener("pointerup", this.onTouchButtonEnd);
+      button.addEventListener("pointercancel", this.onTouchButtonEnd);
+      button.addEventListener("lostpointercapture", this.onTouchButtonEnd);
+      button.addEventListener("contextmenu", this.onContextMenu);
+    }
+  }
+
+  private readTouchAction(target: EventTarget | null): TouchAction | undefined {
+    if (!(target instanceof HTMLElement)) return undefined;
+    const action = target.dataset.touchAction;
+    if (
+      action === "forward" ||
+      action === "backward" ||
+      action === "left" ||
+      action === "right" ||
+      action === "fire" ||
+      action === "reload" ||
+      action === "jump" ||
+      action === "sprint"
+    ) {
+      return action;
+    }
+    return undefined;
+  }
+
+  private recomputeTouchHeld() {
+    const active = new Set(this.activeTouchPointers.values());
+    this.touchForward = active.has("forward");
+    this.touchBackward = active.has("backward");
+    this.touchLeft = active.has("left");
+    this.touchRight = active.has("right");
+    this.touchFireHeld = active.has("fire");
+    this.touchSprintHeld = active.has("sprint");
   }
 
   private onKeyDown = (event: KeyboardEvent) => {
@@ -115,6 +192,59 @@ export class InputController {
     this.mouseDeltaY += clamp(dy, -MAX_MOUSE_EVENT_DELTA, MAX_MOUSE_EVENT_DELTA);
   };
 
+  private onTouchButtonDown = (event: PointerEvent) => {
+    const action = this.readTouchAction(event.currentTarget);
+    if (!action) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.currentTarget instanceof HTMLElement) event.currentTarget.setPointerCapture?.(event.pointerId);
+
+    this.activeTouchPointers.set(event.pointerId, action);
+    if (action === "jump") this.jumpPressed = true;
+    if (action === "reload") this.reloadPressed = true;
+    this.recomputeTouchHeld();
+  };
+
+  private onTouchButtonEnd = (event: PointerEvent) => {
+    const action = this.readTouchAction(event.currentTarget);
+    if (!action && !this.activeTouchPointers.has(event.pointerId)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    this.activeTouchPointers.delete(event.pointerId);
+    this.recomputeTouchHeld();
+  };
+
+  private onTouchLookDown = (event: PointerEvent) => {
+    if (event.pointerType === "mouse" || this.touchLookPointerId !== undefined) return;
+    if (event.clientX < window.innerWidth * 0.34) return;
+    event.preventDefault();
+    this.touchLookPointerId = event.pointerId;
+    this.touchLookLastX = event.clientX;
+    this.touchLookLastY = event.clientY;
+    this.lockTarget.setPointerCapture?.(event.pointerId);
+  };
+
+  private onTouchLookMove = (event: PointerEvent) => {
+    if (event.pointerId !== this.touchLookPointerId) return;
+    event.preventDefault();
+    const dx = (event.clientX - this.touchLookLastX) * TOUCH_LOOK_SCALE;
+    const dy = (event.clientY - this.touchLookLastY) * TOUCH_LOOK_SCALE;
+    this.touchLookLastX = event.clientX;
+    this.touchLookLastY = event.clientY;
+    this.mouseDeltaX += clamp(dx, -MAX_MOUSE_EVENT_DELTA, MAX_MOUSE_EVENT_DELTA);
+    this.mouseDeltaY += clamp(dy, -MAX_MOUSE_EVENT_DELTA, MAX_MOUSE_EVENT_DELTA);
+  };
+
+  private onTouchLookEnd = (event: PointerEvent) => {
+    if (event.pointerId !== this.touchLookPointerId) return;
+    event.preventDefault();
+    this.touchLookPointerId = undefined;
+  };
+
+  private onContextMenu = (event: Event) => {
+    event.preventDefault();
+  };
+
   private onPointerLockChange = () => {
     this.resetMouseLookBuffer();
     if (!this.isPointerLocked()) {
@@ -135,6 +265,9 @@ export class InputController {
     this.keys.clear();
     this.firePressed = false;
     this.fireHeld = false;
+    this.activeTouchPointers.clear();
+    this.recomputeTouchHeld();
+    this.touchLookPointerId = undefined;
     this.jumpPressed = false;
     this.reloadPressed = false;
     this.resetMouseLookBuffer();

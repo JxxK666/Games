@@ -49,14 +49,16 @@ if (new URLSearchParams(window.location.search).has("autostart")) {
 }
 
 document.addEventListener("pointerlockchange", () => {
-  if (simulation.state.mode === "playing" && !input.isPointerLocked()) {
+  if (simulation.state.mode === "playing" && !input.usesTouchControls() && !input.isPointerLocked()) {
     simulation.state.message = "Click the scene to resume mouse look";
     simulation.state.messageTimer = 1.5;
   }
 });
 
 renderer.renderer.domElement.addEventListener("click", () => {
-  if (simulation.state.mode === "playing" && !input.isPointerLocked()) input.requestPointerLock();
+  if (simulation.state.mode === "playing" && !input.usesTouchControls() && !input.isPointerLocked()) {
+    input.requestPointerLock();
+  }
 });
 
 const loop = () => {
