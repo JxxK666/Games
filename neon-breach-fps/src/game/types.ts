@@ -20,7 +20,7 @@ export type ColliderKind =
   | "trash"
   | "sculpture"
   | "chair";
-export type PublicSceneType = "metro" | "airport" | "mall" | "hospital" | "library";
+export type PublicSceneType = "metro" | "airport" | "mall" | "hospital" | "library" | "office";
 
 export interface Vec3 {
   x: number;

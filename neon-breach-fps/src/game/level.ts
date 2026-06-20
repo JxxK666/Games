@@ -88,6 +88,20 @@ const blueprints: SceneBlueprint[] = [
     kioskLabel: "Self Checkout",
     adLabel: "New Books",
   },
+  {
+    type: "office",
+    name: "Open Plan Office",
+    objectiveLabel: "Secure the office floor",
+    floorColor: "#cfd3d6",
+    wallColor: "#f1f3f4",
+    accentColor: "#7aa9a5",
+    secondaryAccent: "#b88a5d",
+    signageColor: "#35454d",
+    signPool: ["Reception", "Meeting Rooms", "Operations", "Break Area", "Exit"],
+    counterLabel: "Reception",
+    kioskLabel: "Print Station",
+    adLabel: "Team Board",
+  },
 ];
 
 const v = (x: number, y: number, z: number): Vec3 => ({ x, y, z });
@@ -181,6 +195,12 @@ const buildMetro: LayoutBuilder = (blueprint, colliders) => {
     prop("divider", "metro-map-divider-left", -3.4, 8.0, 0.46, 4.8, 1.15, "Map Rail"),
     prop("divider", "metro-map-divider-right", 3.4, 8.0, 0.46, 4.8, 1.15, "Map Rail"),
     prop("lowWall", "metro-platform-cover", 0, -7.2, 7.6, 0.8, 1.2, "Platform Cover"),
+    prop("bench", "metro-island-seat-left", -11.2, 3.4, 4.6, 1.0, 0.75, "Platform Seating"),
+    prop("bench", "metro-island-seat-right", 11.2, 3.4, 4.6, 1.0, 0.75, "Platform Seating"),
+    prop("kiosk", "metro-info-pillar-left", -8.0, -9.2, 1.25, 1.05, 2.05, "Route Map"),
+    prop("kiosk", "metro-info-pillar-right", 8.0, -9.2, 1.25, 1.05, 2.05, "Route Map"),
+    prop("planter", "metro-planter-left", -14.8, 10.2, 1.4, 1.4, 1.05, "Plant"),
+    prop("planter", "metro-planter-right", 14.8, 10.2, 1.4, 1.4, 1.05, "Plant"),
   );
   return "fare gates and platform doors";
 };
@@ -208,6 +228,12 @@ const buildAirport: LayoutBuilder = (blueprint, colliders) => {
     prop("divider", "airport-queue-cross", 0, -3.2, 8.2, 0.42, 1.02, "Queue Belt"),
     prop("lowWall", "gate-partition-left", -9.5, -11.8, 4.6, 0.7, 1.18, "Gate Partition"),
     prop("lowWall", "gate-partition-right", 9.5, -11.8, 4.6, 0.7, 1.18, "Gate Partition"),
+    prop("bench", "airport-seat-island-left", -11.0, 1.8, 5.8, 1.0, 0.75, "Gate Seating"),
+    prop("bench", "airport-seat-island-right", 11.0, 1.8, 5.8, 1.0, 0.75, "Gate Seating"),
+    prop("table", "airport-charge-table-left", -12.8, -8.2, 3.0, 1.35, 0.92, "Charging Table"),
+    prop("table", "airport-charge-table-right", 12.8, -8.2, 3.0, 1.35, 0.92, "Charging Table"),
+    prop("divider", "airport-queue-return-left", -2.8, -5.7, 0.42, 4.2, 1.02, "Queue Belt"),
+    prop("divider", "airport-queue-return-right", 2.8, -5.7, 0.42, 4.2, 1.02, "Queue Belt"),
   );
   return "gate desk with queue lanes";
 };
@@ -236,6 +262,12 @@ const buildMall: LayoutBuilder = (blueprint, colliders) => {
     prop("trash", "mall-bin-a", -6.2, 12.8, 0.75, 0.75, 1.05, "Bin"),
     prop("trash", "mall-bin-b", 6.2, 12.8, 0.75, 0.75, 1.05, "Bin"),
     prop("sculpture", "atrium-sculpture", 0, 1.5, 2.2, 2.2, 1.85, "Art"),
+    prop("bench", "mall-planter-seat-left", -5.2, -9.0, 4.2, 1.0, 0.75, "Lounge Seating"),
+    prop("bench", "mall-planter-seat-right", 5.2, -9.0, 4.2, 1.0, 0.75, "Lounge Seating"),
+    prop("planter", "mall-tree-left", -9.0, -9.0, 1.6, 1.6, 1.05, "Indoor Tree"),
+    prop("planter", "mall-tree-right", 9.0, -9.0, 1.6, 1.6, 1.05, "Indoor Tree"),
+    prop("stall", "mall-center-display-left", -10.5, 13.0, 3.0, 1.8, 1.75, "Accessories"),
+    prop("stall", "mall-center-display-right", 10.5, 13.0, 3.0, 1.8, 1.75, "Desserts"),
   );
   return "atrium railing and storefronts";
 };
@@ -265,6 +297,13 @@ const buildHospital: LayoutBuilder = (blueprint, colliders) => {
     prop("lowWall", "waiting-partition", 0, 10.0, 8.2, 0.65, 1.08, "Waiting"),
     prop("table", "wheelchair-bay", -15.6, 13.8, 2.6, 1.3, 0.88, "Assist"),
     prop("chair", "hospital-chair-row", 15.4, 13.8, 3.2, 1.05, 0.86, "Chairs"),
+    prop("counter", "nurse-station-island", 0, 1.6, 5.8, 1.45, 1.18, "Nurse Station"),
+    prop("divider", "exam-screen-left-a", -10.2, -5.0, 0.44, 4.2, 1.55, "Privacy Screen"),
+    prop("divider", "exam-screen-right-a", 10.2, -5.0, 0.44, 4.2, 1.55, "Privacy Screen"),
+    prop("table", "hospital-cart-left", -12.6, 1.8, 2.3, 1.15, 0.9, "Medical Cart"),
+    prop("table", "hospital-cart-right", 12.6, 1.8, 2.3, 1.15, 0.9, "Medical Cart"),
+    prop("planter", "hospital-calm-plant-left", -7.4, 13.4, 1.3, 1.3, 1.0, "Plant"),
+    prop("planter", "hospital-calm-plant-right", 7.4, 13.4, 1.3, 1.3, 1.0, "Plant"),
   );
   return "reception desk and waiting rows";
 };
@@ -272,10 +311,10 @@ const buildHospital: LayoutBuilder = (blueprint, colliders) => {
 const buildLibrary: LayoutBuilder = (blueprint, colliders) => {
   colliders.push(
     prop("counter", "borrow-desk", 0, 15.4, 7.6, 1.25, 1.25, blueprint.counterLabel),
-    cover("bookshelf-left-a", -15.4, -9.5, 2.0, 8.8, 2.25, "Bookshelf"),
-    cover("bookshelf-left-b", -10.8, -9.5, 2.0, 8.8, 2.25, "Bookshelf"),
-    cover("bookshelf-right-a", 15.4, -9.5, 2.0, 8.8, 2.25, "Bookshelf"),
-    cover("bookshelf-right-b", 10.8, -9.5, 2.0, 8.8, 2.25, "Bookshelf"),
+    prop("shelf", "bookshelf-left-a", -15.4, -9.5, 2.0, 8.8, 2.25, "Bookshelf"),
+    prop("shelf", "bookshelf-left-b", -10.8, -9.5, 2.0, 8.8, 2.25, "Bookshelf"),
+    prop("shelf", "bookshelf-right-a", 15.4, -9.5, 2.0, 8.8, 2.25, "Bookshelf"),
+    prop("shelf", "bookshelf-right-b", 10.8, -9.5, 2.0, 8.8, 2.25, "Bookshelf"),
     cover("reading-table-a", -5.2, 2.4, 5.2, 1.6, 1.0, "Reading Table"),
     cover("reading-table-b", 5.2, 2.4, 5.2, 1.6, 1.0, "Reading Table"),
     prop("kiosk", "checkout-left", -15.5, 9.5, 1.35, 1.1, 2.05, blueprint.kioskLabel),
@@ -291,8 +330,50 @@ const buildLibrary: LayoutBuilder = (blueprint, colliders) => {
     prop("divider", "quiet-divider-right", 3.3, -5.6, 0.45, 6.8, 1.45, "Quiet"),
     prop("trash", "library-bin-a", -4.0, 14.2, 0.75, 0.75, 1.05, "Bin"),
     prop("trash", "library-bin-b", 4.0, 14.2, 0.75, 0.75, 1.05, "Bin"),
+    prop("shelf", "bookshelf-center-left", -5.8, -10.0, 1.8, 8.2, 2.15, "Bookshelf"),
+    prop("shelf", "bookshelf-center-right", 5.8, -10.0, 1.8, 8.2, 2.15, "Bookshelf"),
+    prop("table", "library-reading-island-left", -12.8, 3.6, 3.6, 1.55, 0.92, "Reading Table"),
+    prop("table", "library-reading-island-right", 12.8, 3.6, 3.6, 1.55, 0.92, "Reading Table"),
+    prop("planter", "library-planter-left", -3.0, 12.6, 1.25, 1.25, 1.0, "Plant"),
+    prop("planter", "library-planter-right", 3.0, 12.6, 1.25, 1.25, 1.0, "Plant"),
   );
   return "bookshelf aisles and reading tables";
+};
+
+const buildOffice: LayoutBuilder = (blueprint, colliders) => {
+  const workstationPods = [
+    { id: "north-left", x: -9.2, z: -6.8 },
+    { id: "north-right", x: 9.2, z: -6.8 },
+    { id: "south-left", x: -9.2, z: 4.2 },
+    { id: "south-right", x: 9.2, z: 4.2 },
+  ];
+
+  colliders.push(
+    glassWall("office-meeting-room-left", -15.6, -15.5, 8.8, 0.32, 3.15, "Meeting Room"),
+    glassWall("office-meeting-room-right", 15.6, -15.5, 8.8, 0.32, 3.15, "Meeting Room"),
+    prop("counter", "office-reception", 0, -16.0, 7.2, 1.3, 1.18, blueprint.counterLabel),
+    prop("kiosk", "office-printer-left", -17.2, 10.0, 1.5, 1.1, 1.75, blueprint.kioskLabel),
+    prop("kiosk", "office-printer-right", 17.2, 10.0, 1.5, 1.1, 1.75, blueprint.kioskLabel),
+    prop("shelf", "office-file-wall-left", -18.2, -5.0, 1.1, 7.0, 1.75, "Files"),
+    prop("shelf", "office-file-wall-right", 18.2, -5.0, 1.1, 7.0, 1.75, "Files"),
+    prop("shelf", "office-resource-cabinet-left", -15.8, 14.0, 3.5, 0.95, 1.45, "Storage"),
+    prop("shelf", "office-resource-cabinet-right", 15.8, 14.0, 3.5, 0.95, 1.45, "Storage"),
+    prop("table", "office-copy-island", 0, -1.2, 3.4, 2.0, 0.9, "Copy Station"),
+    prop("divider", "office-center-screen", 0, 6.2, 0.46, 6.0, 1.48, "Acoustic Screen"),
+    prop("planter", "office-center-plant-a", -3.1, 7.8, 1.35, 1.35, 1.05, "Plant"),
+    prop("planter", "office-center-plant-b", 3.1, 7.8, 1.35, 1.35, 1.05, "Plant"),
+  );
+
+  for (const pod of workstationPods) {
+    colliders.push(
+      prop("table", `office-workstation-${pod.id}`, pod.x, pod.z, 6.0, 2.0, 0.84, "Workstation"),
+      prop("divider", `office-panel-${pod.id}`, pod.x, pod.z, 6.2, 0.24, 1.48, "Cubicle Panel"),
+      prop("chair", `office-chair-${pod.id}`, pod.x, pod.z + 2.0, 2.8, 0.9, 0.84, "Office Chairs"),
+      prop("planter", `office-plant-${pod.id}`, pod.x + (pod.x < 0 ? -3.8 : 3.8), pod.z, 1.2, 1.2, 1.0, "Plant"),
+    );
+  }
+
+  return "cubicle pods, file cabinets and meeting rooms";
 };
 
 const layoutBuilders: Record<PublicSceneType, LayoutBuilder> = {
@@ -301,6 +382,7 @@ const layoutBuilders: Record<PublicSceneType, LayoutBuilder> = {
   mall: buildMall,
   hospital: buildHospital,
   library: buildLibrary,
+  office: buildOffice,
 };
 
 const collidesWithRect = (point: Vec3, collider: RectCollider, radius: number) => {
@@ -379,7 +461,14 @@ const addLowPolyDressing = (blueprint: SceneBlueprint, colliders: RectCollider[]
     height: number;
     label: string;
   }> =
-    blueprint.type === "mall"
+    blueprint.type === "office"
+      ? [
+          { kind: "table", width: 3.6, depth: 1.6, height: 0.84, label: "Workstation" },
+          { kind: "divider", width: 3.8, depth: 0.24, height: 1.45, label: "Cubicle Panel" },
+          { kind: "shelf", width: 2.5, depth: 0.9, height: 1.45, label: "Files" },
+          { kind: "planter", width: 1.2, depth: 1.2, height: 1.0, label: "Plant" },
+        ]
+      : blueprint.type === "mall"
       ? [
           { kind: "stall", width: 2.9, depth: 1.8, height: 1.8, label: "Cart" },
           { kind: "table", width: 1.65, depth: 1.65, height: 0.9, label: "Cafe" },
@@ -519,7 +608,8 @@ const createEnemySpawns = (colliders: RectCollider[], playerSpawn: Vec3, levelIn
 };
 
 export const createLevel = (levelIndex = 1): LevelData => {
-  const blueprint = pick(blueprints);
+  const requestedScene = typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("scene");
+  const blueprint = blueprints.find((candidate) => candidate.type === requestedScene) ?? pick(blueprints);
   const playerSpawn = v(0, 0, 18.2);
   const colliders: RectCollider[] = [];
   addRoomShell(colliders);

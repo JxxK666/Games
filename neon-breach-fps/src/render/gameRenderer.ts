@@ -343,12 +343,19 @@ export class GameRenderer {
                                 : coverMat;
 
       let geometry: THREE.BufferGeometry;
+      let meshHeight = collider.height / 2;
       if (collider.kind === "pillar") {
         geometry = new THREE.CylinderGeometry(collider.width / 2, collider.width / 2, collider.height, 8);
       } else if (collider.kind === "trash") {
         geometry = new THREE.CylinderGeometry(collider.width / 2, collider.width * 0.42, collider.height, 8);
       } else if (collider.kind === "sculpture") {
         geometry = new THREE.DodecahedronGeometry(Math.max(collider.width, collider.depth) * 0.46, 0);
+      } else if (collider.kind === "table") {
+        geometry = new THREE.BoxGeometry(collider.width, 0.16, collider.depth);
+        meshHeight = collider.height - 0.08;
+      } else if (collider.kind === "chair") {
+        geometry = new THREE.BoxGeometry(collider.width, 0.14, collider.depth);
+        meshHeight = collider.height * 0.54;
       } else {
         geometry = new THREE.BoxGeometry(collider.width, collider.height, collider.depth);
       }
@@ -357,7 +364,7 @@ export class GameRenderer {
       if (collider.kind === "sculpture") {
         mesh.scale.y = Math.max(0.9, collider.height / Math.max(collider.width, collider.depth));
       }
-      mesh.position.set(collider.x, collider.height / 2, collider.z);
+      mesh.position.set(collider.x, meshHeight, collider.z);
       mesh.castShadow = !["glassWall", "sign", "adScreen"].includes(collider.kind);
       mesh.receiveShadow = true;
       target.add(mesh);
@@ -399,6 +406,7 @@ export class GameRenderer {
     }
     if (collider.kind === "shelf") this.addShelfDetails(collider, theme, target);
     if (collider.kind === "stall") this.addStallDetails(collider, theme, target);
+    if (collider.kind === "divider") this.addDividerDetails(collider, theme, target);
     if (collider.kind === "trash") this.addTrashDetails(collider, target);
     if (collider.kind === "sculpture") this.addSculptureDetails(collider, theme, target);
 
@@ -480,8 +488,63 @@ export class GameRenderer {
   }
 
   private addFurnitureDetails(collider: RectCollider, theme: LevelTheme, target: THREE.Group) {
+    if (collider.kind === "table") {
+      const legHeight = Math.max(0.42, collider.height - 0.12);
+      for (const x of [-collider.width * 0.42, collider.width * 0.42]) {
+        for (const z of [-collider.depth * 0.36, collider.depth * 0.36]) {
+          this.addDetailBox(collider, target, [0.12, legHeight, 0.12], [x, legHeight / 2, z], "#59636a", 0.28, 0.34);
+        }
+      }
+
+      if (collider.label?.includes("Workstation")) {
+        const screenXs = collider.width > 4 ? [-collider.width * 0.24, collider.width * 0.24] : [0];
+        for (const x of screenXs) {
+          this.addDetailBox(collider, target, [0.74, 0.46, 0.065], [x, collider.height + 0.29, 0], "#26343c", 0.25, 0.2);
+          this.addDetailBox(collider, target, [0.08, 0.24, 0.08], [x, collider.height + 0.12, 0], "#65737b", 0.38, 0.28);
+        }
+      }
+      return;
+    }
+
+    if (collider.kind === "chair") {
+      const chairCount = Math.max(1, Math.round(collider.width / 0.9));
+      const spacing = collider.width / chairCount;
+      for (let i = 0; i < chairCount; i += 1) {
+        const x = -collider.width / 2 + spacing * (i + 0.5);
+        this.addDetailBox(collider, target, [Math.min(0.68, spacing * 0.78), 0.5, 0.11], [x, collider.height * 0.78, collider.depth * 0.43], "#34434c", 0.18, 0.46);
+        this.addDetailBox(collider, target, [0.09, collider.height * 0.48, 0.09], [x, collider.height * 0.25, 0], "#46535b", 0.3, 0.34);
+      }
+      return;
+    }
+
     this.addDetailBox(collider, target, [collider.width * 1.04, 0.12, collider.depth * 1.04], [0, collider.height + 0.02, 0], "#b58b61", 0.05, 0.45);
     this.addDetailBox(collider, target, [collider.width * 0.55, 0.04, 0.055], [0, collider.height + 0.1, -collider.depth * 0.47], theme.accentColor, 0.08, 0.24);
+  }
+
+  private addDividerDetails(collider: RectCollider, theme: LevelTheme, target: THREE.Group) {
+    const horizontal = collider.width >= collider.depth;
+    this.addDetailBox(
+      collider,
+      target,
+      horizontal ? [collider.width * 1.02, 0.07, collider.depth * 1.18] : [collider.width * 1.18, 0.07, collider.depth * 1.02],
+      [0, collider.height - 0.035, 0],
+      theme.accentColor,
+      0.22,
+      0.3,
+    );
+
+    const ends = horizontal ? [-collider.width * 0.48, collider.width * 0.48] : [-collider.depth * 0.48, collider.depth * 0.48];
+    for (const end of ends) {
+      this.addDetailBox(
+        collider,
+        target,
+        horizontal ? [0.08, collider.height, collider.depth * 1.18] : [collider.width * 1.18, collider.height, 0.08],
+        horizontal ? [end, collider.height / 2, 0] : [0, collider.height / 2, end],
+        "#64747c",
+        0.3,
+        0.32,
+      );
+    }
   }
 
   private addShelfDetails(collider: RectCollider, theme: LevelTheme, target: THREE.Group) {

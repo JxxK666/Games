@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.7 - Dense Real-World Interior Maps
+
+- Added a sixth public-space map: an open-plan office based on the supplied workstation reference.
+- Added cubicle pods, desks, chairs, file cabinets, printer stations, meeting-room glass, and office plants.
+- Increased thematic cover density in hospital, airport, metro, mall, and library layouts using real interior reference patterns.
+- Rebuilt tables, chairs, and divider screens with recognizable low-poly furniture details instead of solid blocks.
+- Added a scene query option such as `?scene=office` for deterministic visual testing.
+- Validated all six layouts for enemy placement, route reachability, HUD overlap, and hardware-accelerated rendering performance.
+
 ## 0.2.6 - Mobile Analog Joystick
 
 - Replaced the mobile movement D-pad with a circular analog joystick.
